@@ -1,0 +1,34 @@
+services:
+  traefik:
+    ports:
+      - "80:80"
+    volumes:
+      - ./traefik/traefik.dev.yml:/etc/traefik/traefik.yml:ro
+
+  frontend:
+    build:
+      target: deps
+    volumes:
+      - ../arcstack-web/src:/app/src
+      - ../arcstack-web/public:/app/public
+    command: npm run dev
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api.arcstack.localhost
+      - NEXT_PUBLIC_WS_URL=http://api.arcstack.localhost
+
+  backend:
+    volumes:
+      - ../arcstack-api/src:/app/src
+    command: npx tsx watch src/index.ts
+    environment:
+      - NODE_ENV=development
+      - FRONTEND_URL=http://arcstack.localhost
+      - COOKIE_DOMAIN=localhost
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

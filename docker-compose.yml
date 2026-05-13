@@ -1,0 +1,110 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - web
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../arcstack-web
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST:-arcstack.localhost}`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.routers.frontend-secure.rule=Host(`${FRONTEND_HOST:-arcstack.localhost}`)"
+      - "traefik.http.routers.frontend-secure.entrypoints=websecure"
+      - "traefik.http.routers.frontend-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${API_URL:-http://api.arcstack.localhost}
+      - NEXT_PUBLIC_WS_URL=${WS_URL:-http://api.arcstack.localhost}
+    depends_on:
+      - backend
+    networks:
+      - web
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../arcstack-api
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`${API_HOST:-api.arcstack.localhost}`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend-secure.rule=Host(`${API_HOST:-api.arcstack.localhost}`)"
+      - "traefik.http.routers.backend-secure.entrypoints=websecure"
+      - "traefik.http.routers.backend-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=4000"
+    environment:
+      - DATABASE_URL=postgresql://arcstack:${DB_PASSWORD:-arcstack_dev}@postgres:5432/arcstack
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-arcstack_dev}@redis:6379
+      - JWT_SECRET=${JWT_SECRET:-change-me-jwt-secret-minimum-32-chars!}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-change-me-refresh-secret-min-32-chars!}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PORT=4000
+      - HOST=0.0.0.0
+      - NODE_ENV=${NODE_ENV:-production}
+      - FRONTEND_URL=${FRONTEND_URL:-http://arcstack.localhost}
+      - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.arcstack.localhost}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - web
+      - internal
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: arcstack
+      POSTGRES_USER: arcstack
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-arcstack_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arcstack"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-arcstack_dev}
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-arcstack_dev}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+    restart: unless-stopped
+
+networks:
+  web:
+    driver: bridge
+  internal:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:
+  letsencrypt:
