@@ -14,7 +14,7 @@ services:
     depends_on:
       - backend
     networks:
-      - bridge
+      - web
     restart: unless-stopped
 
   backend:
@@ -54,7 +54,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - bridge
+      - web
       - internal
     restart: unless-stopped
 
@@ -90,9 +90,8 @@ services:
     restart: unless-stopped
 
 networks:
-  bridge:
-    external: true
-    name: bridge
+  web:
+    driver: bridge
   internal:
     driver: bridge
 
