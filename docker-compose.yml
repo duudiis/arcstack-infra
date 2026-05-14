@@ -1,32 +1,20 @@
 services:
-  traefik:
-    image: traefik:v3.0
-    ports:
-      - "1300:1300"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/dynamic:/etc/traefik/dynamic:ro
-    networks:
-      - web
-    restart: unless-stopped
-
   frontend:
     build:
       context: ./arcstack-web
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST:-preview.dudis.space}`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.arcstack-frontend.entrypoints=web"
+      - "traefik.http.routers.arcstack-frontend.rule=Host(`${FRONTEND_HOST:-preview.dudis.space}`)"
+      - "traefik.http.services.arcstack-frontend.loadbalancer.server.port=3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${API_URL:-http://api.dudis.space:1300}
-      - NEXT_PUBLIC_WS_URL=${WS_URL:-ws://api.dudis.space:1300}
+      - NEXT_PUBLIC_API_URL=${API_URL:-https://api.dudis.space}
+      - NEXT_PUBLIC_WS_URL=${WS_URL:-wss://api.dudis.space}
     depends_on:
       - backend
     networks:
-      - web
+      - bridge
     restart: unless-stopped
 
   backend:
@@ -35,9 +23,9 @@ services:
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`${API_HOST:-api.dudis.space}`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=4000"
+      - "traefik.http.routers.arcstack-backend.entrypoints=web"
+      - "traefik.http.routers.arcstack-backend.rule=Host(`${API_HOST:-api.dudis.space}`)"
+      - "traefik.http.services.arcstack-backend.loadbalancer.server.port=4000"
     environment:
       - DATABASE_URL=postgresql://arcstack:${DB_PASSWORD:-arcstack_dev}@postgres:5432/arcstack
       - REDIS_URL=redis://:${REDIS_PASSWORD:-arcstack_dev}@redis:6379
@@ -66,7 +54,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - web
+      - bridge
       - internal
     restart: unless-stopped
 
@@ -102,8 +90,9 @@ services:
     restart: unless-stopped
 
 networks:
-  web:
-    driver: bridge
+  bridge:
+    external: true
+    name: bridge
   internal:
     driver: bridge
 
