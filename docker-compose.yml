@@ -3,6 +3,9 @@ services:
     build:
       context: ./arcstack-web
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${API_URL:-https://api.dudis.space}
+        - NEXT_PUBLIC_WS_URL=${WS_URL:-wss://api.dudis.space}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.arcstack-frontend.entrypoints=web"
