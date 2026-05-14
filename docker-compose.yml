@@ -17,12 +17,12 @@ services:
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST:-arcstack.dudis.space}`)"
+      - "traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST:-preview.dudis.space}`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${API_URL:-http://api.arcstack.dudis.space:1300}
-      - NEXT_PUBLIC_WS_URL=${WS_URL:-ws://api.arcstack.dudis.space:1300}
+      - NEXT_PUBLIC_API_URL=${API_URL:-http://api.dudis.space:1300}
+      - NEXT_PUBLIC_WS_URL=${WS_URL:-ws://api.dudis.space:1300}
     depends_on:
       - backend
     networks:
@@ -35,7 +35,7 @@ services:
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`${API_HOST:-api.arcstack.dudis.space}`)"
+      - "traefik.http.routers.backend.rule=Host(`${API_HOST:-api.dudis.space}`)"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=4000"
     environment:
@@ -47,7 +47,7 @@ services:
       - PORT=4000
       - HOST=0.0.0.0
       - NODE_ENV=${NODE_ENV:-production}
-      - FRONTEND_URL=${FRONTEND_URL:-https://arcstack.dudis.space}
+      - FRONTEND_URL=${FRONTEND_URL:-https://preview.dudis.space}
       - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.dudis.space}
       # AWS EC2 provisioning
       - AWS_REGION=${AWS_REGION:-us-east-1}
@@ -58,7 +58,7 @@ services:
       - AWS_SUBNET_ID=${AWS_SUBNET_ID}
       - AWS_KEY_PAIR_NAME=${AWS_KEY_PAIR_NAME}
       - AWS_INSTANCE_TYPE=${AWS_INSTANCE_TYPE:-t2.micro}
-      - AGENT_WS_URL=${AGENT_WS_URL:-wss://api.arcstack.dudis.space}
+      - AGENT_WS_URL=${AGENT_WS_URL:-wss://api.dudis.space}
       - AGENT_REPO_URL=${AGENT_REPO_URL:-https://github.com/duudiis/arcstack-agent.git}
     depends_on:
       postgres:
