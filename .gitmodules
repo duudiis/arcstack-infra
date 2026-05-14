@@ -1,0 +1,9 @@
+[submodule "arcstack-web"]
+	path = arcstack-web
+	url = https://github.com/duudiis/arcstack-web.git
+[submodule "arcstack-api"]
+	path = arcstack-api
+	url = https://github.com/duudiis/arcstack-api.git
+[submodule "arcstack-agent"]
+	path = arcstack-agent
+	url = https://github.com/duudiis/arcstack-agent.git

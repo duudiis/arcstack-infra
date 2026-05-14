@@ -13,7 +13,7 @@ services:
 
   frontend:
     build:
-      context: ../arcstack-web
+      context: ./arcstack-web
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
@@ -31,7 +31,7 @@ services:
 
   backend:
     build:
-      context: ../arcstack-api
+      context: ./arcstack-api
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
