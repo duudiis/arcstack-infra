@@ -29,6 +29,7 @@ services:
       - "traefik.http.routers.arcstack-backend.entrypoints=web"
       - "traefik.http.routers.arcstack-backend.rule=Host(`${API_HOST:-api.dudis.space}`)"
       - "traefik.http.services.arcstack-backend.loadbalancer.server.port=4000"
+      - "traefik.docker.network=arcstack-infra_web"
     environment:
       - DATABASE_URL=postgresql://arcstack:${DB_PASSWORD:-arcstack_dev}@postgres:5432/arcstack
       - REDIS_URL=redis://:${REDIS_PASSWORD:-arcstack_dev}@redis:6379
