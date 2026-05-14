@@ -49,6 +49,17 @@ services:
       - NODE_ENV=${NODE_ENV:-production}
       - FRONTEND_URL=${FRONTEND_URL:-https://arcstack.dudis.space}
       - COOKIE_DOMAIN=${COOKIE_DOMAIN:-.dudis.space}
+      # AWS EC2 provisioning
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_AMI_ID=${AWS_AMI_ID}
+      - AWS_SECURITY_GROUP_ID=${AWS_SECURITY_GROUP_ID}
+      - AWS_SUBNET_ID=${AWS_SUBNET_ID}
+      - AWS_KEY_PAIR_NAME=${AWS_KEY_PAIR_NAME}
+      - AWS_INSTANCE_TYPE=${AWS_INSTANCE_TYPE:-t2.micro}
+      - AGENT_WS_URL=${AGENT_WS_URL:-wss://api.arcstack.dudis.space}
+      - AGENT_REPO_URL=${AGENT_REPO_URL:-https://github.com/duudiis/arcstack-agent.git}
     depends_on:
       postgres:
         condition: service_healthy
